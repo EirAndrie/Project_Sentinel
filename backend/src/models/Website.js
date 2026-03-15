@@ -25,6 +25,10 @@ const WebsiteSchema = new mongoose.Schema({
     default: 24, // in hours
     min: 1,
   },
+  last_seen: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Website = mongoose.model("Website", WebsiteSchema);

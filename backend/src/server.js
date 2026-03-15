@@ -7,6 +7,9 @@ import { dirname } from "path";
 // File imports
 import connectDB from "./config/db.js";
 import UserRoutes from "./routes/UserRoutes.js";
+import CreatorRoutes from "./routes/CreatorRoutes.js";
+import PoserAccountRoutes from "./routes/PoserAccountRoutes.js";
+import WebsiteRoutes from "./routes/WebsiteRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,6 +45,9 @@ if (!isProduction) {
 
 // Routes
 app.use("/", UserRoutes);
+app.use("/", CreatorRoutes);
+app.use("/", PoserAccountRoutes);
+app.use("/", WebsiteRoutes);
 
 // Check if project runs on production or development
 if (isProduction) {

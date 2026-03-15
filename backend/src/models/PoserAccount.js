@@ -21,14 +21,6 @@ const PoserAccountSchema = new mongoose.Schema({
     type: String,
     required: [true, "Profile URL is required"],
   },
-  profile_image: {
-    type: String,
-    default: "",
-  },
-  bio: {
-    type: String,
-    default: "",
-  },
   followers_count: {
     type: Number,
     default: 0,

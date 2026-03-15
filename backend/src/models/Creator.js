@@ -20,6 +20,28 @@ const CreatorSchema = new mongoose.Schema({
       message: "At least one keyword is required",
     },
   },
+  socials: {
+    type: [String],
+    required: [true, "Socials are required"],
+    validate: {
+      validator: (v) => v.length > 0,
+      message: "At least one social is required",
+    },
+  },
+  description: {
+    type: String,
+    required: [true, "Description is required"],
+  },
+  poser_account_count: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  website_count: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   created_at: {
     type: Date,
     default: Date.now,
