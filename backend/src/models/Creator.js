@@ -6,7 +6,6 @@ const CreatorSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "User ID is required"],
-    unique: true,
   },
   creator_name: {
     type: String,
@@ -23,9 +22,13 @@ const CreatorSchema = new mongoose.Schema({
   socials: {
     type: [String],
     required: [true, "Socials are required"],
+  },
+  socials_url: {
+    type: [String],
+    required: [true, "Socials URLs are required"],
     validate: {
       validator: (v) => v.length > 0,
-      message: "At least one social is required",
+      message: "At least one social URL is required",
     },
   },
   description: {

@@ -5,9 +5,14 @@ import CreatorsTableSection from "../sections/creatorProfilesSection/CreatorsTab
 import SearchBar from "../actions/SearchBar.jsx";
 import CreatorProfilingModal from "../modal/CreatorProfilingModal.jsx";
 
-export default function CreatorProfiles() {
+export default function CreatorProfilesPage() {
   // State for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Increment to trigger table re-fetch after a creator is added
+  const [refreshKey, setRefreshKey] = useState(0);
+  // Get logged-in user's ID from localStorage
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userID = user._id;
 
   return (
     <div className="flex h-screen bg-gray-50/50 font-sans">
@@ -29,7 +34,7 @@ export default function CreatorProfiles() {
             }}
           />
           {/* Data Table */}
-          <CreatorsTableSection />
+          <CreatorsTableSection userID={userID} refreshKey={refreshKey} />
         </div>
       </main>
 
@@ -37,6 +42,11 @@ export default function CreatorProfiles() {
       <CreatorProfilingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        userID={userID}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          setRefreshKey((k) => k + 1); // triggers table re-fetch
+        }}
       />
     </div>
   );

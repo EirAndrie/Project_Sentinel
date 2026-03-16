@@ -36,16 +36,6 @@ export const createCreator = async (req, res) => {
         .json({ message: "User not found", success: false });
     }
 
-    // Edge Case 4: User already has a creator profile
-    const existingCreator = await Creator.findOne({ userID: req.body.userID });
-    if (existingCreator) {
-      console.log("EDGE CASE 4: Creator already exists for this user");
-      return res.status(400).json({
-        message: "Creator already exists for this user",
-        success: false,
-      });
-    }
-
     // Edge Case 5: Keywords array is empty
     if (req.body.keywords.length === 0) {
       console.log("EDGE CASE 5: Keywords are empty");
@@ -104,6 +94,40 @@ export const getCreator = async (req, res) => {
     res.status(200).json({ creator, success: true });
   } catch (error) {
     console.log(`Error getting creator: ${error.message}`);
+    res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+// GET Function to get all creators belonging to a user
+export const getCreatorsByUser = async (req, res) => {
+  try {
+    // Edge Case 1: Invalid user ID format
+    const idRegex = /^[0-9a-fA-F]{24}$/;
+    if (!idRegex.test(req.params.userID)) {
+      console.log("EDGE CASE 1: Invalid user ID");
+      return res
+        .status(400)
+        .json({ message: "Invalid user ID", success: false });
+    }
+
+    // Edge Case 2: User does not exist
+    const userExists = await User.findById(req.params.userID);
+    if (!userExists) {
+      console.log("EDGE CASE 2: User not found");
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
+    }
+
+    // Fetch all creators linked to this user (empty array is valid)
+    const creators = await Creator.find({ userID: req.params.userID });
+
+    console.log(
+      `Found ${creators.length} creator(s) for user ${userExists.name}`,
+    );
+    res.status(200).json({ creators, success: true });
+  } catch (error) {
+    console.log(`Error getting creators by user: ${error.message}`);
     res.status(500).json({ message: error.message, success: false });
   }
 };

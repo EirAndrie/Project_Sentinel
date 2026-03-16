@@ -1,82 +1,53 @@
 import UniversalTable from "../../tables/UniversalTable";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import HandleBadge from "../../bagdeUI/HandleBadge";
+import api from "../../../lib/axios.js";
+import { useState, useEffect } from "react";
 
-// DUMMY DATA FOR UI SCAFFOLDING
 const COLUMNS = [
   {
-    key: "name",
+    key: "creator_name",
     label: "Creator Name",
     align: "left",
   },
   {
-    key: "handles",
+    key: "socials",
     label: "Handles",
     align: "left",
-    render: (handles) => (
+    // socials = platform names, socials_url = handle values (parallel arrays)
+    render: (socials, row) => (
       <div className="flex flex-wrap gap-1">
-        {handles.map((h, i) => (
-          <HandleBadge key={i} handle={h} />
+        {(socials ?? []).map((platform, i) => (
+          <HandleBadge
+            key={i}
+            handle={`${platform}: ${row.socials_url?.[i] ?? ""}`}
+          />
         ))}
       </div>
     ),
   },
   {
-    key: "sites",
+    key: "website_count",
     label: "Assigned Websites",
-    align: "left",
+    align: "center",
   },
   {
-    key: "infringements",
+    key: "poser_account_count",
     label: "Total Infringements",
-    align: "right",
+    align: "center",
   },
   {
-    key: "lastScraped",
-    label: "Last Scraped",
+    key: "created_at",
+    label: "Date Added",
     align: "left",
-  },
-];
-
-const CREATORS = [
-  {
-    name: "Elena Voss",
-    handles: ["Instagram: @elenavoss", "TikTok: @elenavossofficial"],
-    sites: "3 sites",
-    infringements: "847",
-    lastScraped: "Mar 14 16:22",
-  },
-  {
-    name: "Marcus Chen",
-    handles: ["YouTube: @marcuschen", "Twitter: @mchen_official"],
-    sites: "2 sites",
-    infringements: "312",
-    lastScraped: "Mar 13 22:45",
-  },
-  {
-    name: "Sophia Ramirez",
-    handles: ["OnlyFans: @sophiar", "Instagram: @sophia.ramirez"],
-    sites: "2 sites",
-    infringements: "1,203",
-    lastScraped: "Mar 14 14:10",
-  },
-  {
-    name: "Jake Morrison",
-    handles: ["Twitch: @jakemorrison"],
-    sites: "1 sites",
-    infringements: "56",
-    lastScraped: "Mar 13 04:00",
-  },
-  {
-    name: "Aria Kim",
-    handles: [
-      "Instagram: @ariakim",
-      "TikTok: @ariakimmusic",
-      "YouTube: @AriaKimOfficial",
-    ],
-    sites: "3 sites",
-    infringements: "534",
-    lastScraped: "Mar 14 17:00",
+    render: (val) =>
+      val
+        ? new Date(val).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "—",
   },
 ];
 
@@ -99,10 +70,28 @@ const ACTIONS = [
   },
 ];
 
-const CreatorsTableSection = () => {
+const CreatorsTableSection = ({ userID, refreshKey }) => {
+  const [creators, setCreators] = useState([]);
+
+  const fetchCreators = async () => {
+    try {
+      const res = await api.get(`/get-creators/user/${userID}`);
+
+      if (res.data && res.data.success) {
+        setCreators(res.data.creators);
+      }
+    } catch (error) {
+      console.error("Error fetching creators:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userID) fetchCreators();
+  }, [userID, refreshKey]); // re-fetches when a new creator is added
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-      <UniversalTable columns={COLUMNS} data={CREATORS} actions={ACTIONS} />
+      <UniversalTable columns={COLUMNS} data={creators} actions={ACTIONS} />
     </div>
   );
 };
