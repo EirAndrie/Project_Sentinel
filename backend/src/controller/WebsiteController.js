@@ -31,7 +31,9 @@ export const createWebsite = async (req, res) => {
     }
 
     // Edge Case 4: Website already exists
-    const existingWebsite = await Website.findOne({ base_url: req.body.base_url });
+    const existingWebsite = await Website.findOne({
+      base_url: req.body.base_url,
+    });
     if (existingWebsite) {
       console.log(
         "EDGE CASE 4: Website already exists. Last seen date will be updated.",
@@ -108,6 +110,83 @@ export const getAllWebsites = async (req, res) => {
     res.status(200).json({ websites, success: true });
   } catch (error) {
     console.log(`Error getting websites: ${error.message}`);
+    res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+// GET Function to get website by creator
+export const getWebsitesByCreator = async (req, res) => {
+  try {
+    // Edge Case 1: Invalid Creator ID
+    const idRegex = /^[0-9a-fA-F]{24}$/;
+    if (!idRegex.test(req.params.creatorID)) {
+      console.log("EDGE CASE 1: Invalid Creator ID");
+      return res
+        .status(400)
+        .json({ message: "Invalid Creator ID", success: false });
+    }
+
+    // Edge Case 2: Creator not found
+    const creator = await Creator.findById(req.params.creatorID);
+    if (!creator) {
+      console.log("EDGE CASE 2: Creator not found");
+      return res
+        .status(404)
+        .json({ message: "Creator not found", success: false });
+    }
+
+    // Edge Case 3: No websites found
+    const websites = await Website.find({ creatorID: req.params.creatorID });
+    if (!websites) {
+      console.log("EDGE CASE 3: No websites found");
+      return res
+        .status(404)
+        .json({ message: "No websites found", success: false });
+    }
+
+    // Throw success status and message
+    console.log(`Websites found successfully`);
+    res.status(200).json({ websites, success: true });
+  } catch (error) {
+    console.log(`Error getting websites: ${error.message}`);
+    res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+// GET Function to get all websites for a specific user
+export const getWebsitesByUser = async (req, res) => {
+  try {
+    // Edge Case 1: Invalid User ID
+    const idRegex = /^[0-9a-fA-F]{24}$/;
+    if (!idRegex.test(req.params.userID)) {
+      console.log("EDGE CASE 1: Invalid User ID");
+      return res
+        .status(400)
+        .json({ message: "Invalid User ID", success: false });
+    }
+
+    // Step 1: Find all creators belonging to this user
+    const creators = await Creator.find({ userID: req.params.userID });
+    if (!creators || creators.length === 0) {
+      console.log("User has no creators.");
+      return res.status(200).json({ websites: [], success: true });
+    }
+
+    // Extract assigned creator on the website
+    const assignedCreators = await Website.find({
+      creatorID: { $in: creators._id },
+    });
+
+    // Step 2: Extract creator IDs
+    const creatorIDs = creators.map((creator) => creator._id);
+    // Step 3: Find all websites assigned to these creators
+    const websites = await Website.find({ creatorID: { $in: creatorIDs } });
+
+    // Throw success status and message
+    console.log(`Found ${websites.length} websites for user successfully`);
+    res.status(200).json({ websites, success: true });
+  } catch (error) {
+    console.log(`Error getting user websites: ${error.message}`);
     res.status(500).json({ message: error.message, success: false });
   }
 };

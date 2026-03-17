@@ -7,6 +7,10 @@ const WebsiteSchema = new mongoose.Schema({
     ref: "Creator",
     required: [true, "Creator ID is required"],
   },
+  assigned_creator: {
+    type: String,
+    required: [true, "Assigned creator is required"],
+  },
   website_name: {
     type: String,
     required: [true, "Website name is required"],

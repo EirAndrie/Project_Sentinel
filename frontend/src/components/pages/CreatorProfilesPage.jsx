@@ -34,7 +34,11 @@ export default function CreatorProfilesPage() {
             }}
           />
           {/* Data Table */}
-          <CreatorsTableSection userID={userID} refreshKey={refreshKey} />
+          <CreatorsTableSection
+            userID={userID}
+            refreshKey={refreshKey}
+            onRefresh={() => setRefreshKey((k) => k + 1)}
+          />
         </div>
       </main>
 

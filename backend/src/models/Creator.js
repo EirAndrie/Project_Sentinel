@@ -7,6 +7,10 @@ const CreatorSchema = new mongoose.Schema({
     ref: "User",
     required: [true, "User ID is required"],
   },
+  creator_image: {
+    type: String,
+    //required: [true, "Creator image is required"],
+  },
   creator_name: {
     type: String,
     required: [true, "Creator name is required"],
@@ -18,6 +22,10 @@ const CreatorSchema = new mongoose.Schema({
       validator: (v) => v.length > 0,
       message: "At least one keyword is required",
     },
+  },
+  official_url: {
+    type: String,
+    required: [true, "Official URL is required"],
   },
   socials: {
     type: [String],

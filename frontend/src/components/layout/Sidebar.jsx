@@ -19,7 +19,7 @@ const NAV_ITEMS = [
     key: "website-profiles",
     icon: Globe,
     label: "Website Profiles",
-    path: "/websites",
+    path: "/website-profiles",
   },
   {
     key: "scrape-jobs",

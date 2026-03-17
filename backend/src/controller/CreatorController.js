@@ -1,5 +1,6 @@
 import Creator from "../models/Creator.js";
 import User from "../models/User.js";
+import Website from "../models/Website.js";
 
 // POST Function to create creator
 export const createCreator = async (req, res) => {
@@ -59,8 +60,46 @@ export const createCreator = async (req, res) => {
       $inc: { creator_count: 1 },
     });
 
+    // Create Website entities for each assigned website URL
+    let websitesCreated = 0;
+    if (req.body.websites && req.body.websites.length > 0) {
+      for (const url of req.body.websites) {
+        try {
+          // Extract hostname as website_name
+          let websiteName;
+          try {
+            websiteName = new URL(url).hostname;
+          } catch {
+            websiteName = url;
+          }
+
+          // Skip if website already exists
+          const existing = await Website.findOne({ base_url: url });
+          if (!existing) {
+            await Website.create({
+              creatorID: creator._id,
+              website_name: websiteName,
+              base_url: url,
+            });
+            websitesCreated++;
+          }
+        } catch (err) {
+          console.log(`Skipping website "${url}": ${err.message}`);
+        }
+      }
+
+      // Update the creator's website_count
+      if (websitesCreated > 0) {
+        await Creator.findByIdAndUpdate(creator._id, {
+          website_count: websitesCreated,
+        });
+      }
+    }
+
     // Throw success status and message
-    console.log(`Creator ${creator.creator_name} created successfully`);
+    console.log(
+      `Creator ${creator.creator_name} created successfully with ${websitesCreated} website(s)`,
+    );
     res.status(201).json({ creator, success: true });
   } catch (error) {
     console.log(`Error creating creator: ${error.message}`);
@@ -229,6 +268,8 @@ export const deleteCreator = async (req, res) => {
         .json({ message: "Creator not found", success: false });
     }
 
+    // Delete all websites linked to this creator
+    await Website.deleteMany({ creatorID: deletedCreator._id });
     // Decrement User Creator Count
     await User.findByIdAndUpdate(deletedCreator.userID, {
       $inc: { creator_count: -1 },

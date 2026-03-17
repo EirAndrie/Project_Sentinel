@@ -1,8 +1,9 @@
 import UniversalTable from "../../tables/UniversalTable";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import HandleBadge from "../../bagdeUI/HandleBadge";
-import api from "../../../lib/axios.js";
-import { useState, useEffect } from "react";
+import useAllCreatorProfile from "../../hooks/useAllCreatorProfile.js";
+import { useNavigate } from "react-router";
+import useDeleteCreatorProfile from "../../hooks/useDeleteCreatorProfile.js";
 
 const COLUMNS = [
   {
@@ -51,47 +52,51 @@ const COLUMNS = [
   },
 ];
 
-const ACTIONS = [
-  {
-    icon: Eye,
-    title: "View",
-    onClick: (row) => console.log("view", row),
-  },
-  {
-    icon: Pencil,
-    title: "Edit",
-    onClick: (row) => console.log("edit", row),
-  },
-  {
-    icon: Trash2,
-    title: "Delete",
-    onClick: (row) => console.log("delete", row),
-    className: "text-red-400 hover:text-red-600",
-  },
-];
+const CreatorsTableSection = ({ userID, refreshKey, onRefresh }) => {
+  const navigate = useNavigate();
+  const { deleteCreator, loading: isDeleting } = useDeleteCreatorProfile();
 
-const CreatorsTableSection = ({ userID, refreshKey }) => {
-  const [creators, setCreators] = useState([]);
+  // Used to fetch all creators refer to useAllCreatorProfile.js hook for more info
+  const { creators, loading, error } = useAllCreatorProfile({
+    userID,
+    refreshKey,
+  });
 
-  const fetchCreators = async () => {
-    try {
-      const res = await api.get(`/get-creators/user/${userID}`);
-
-      if (res.data && res.data.success) {
-        setCreators(res.data.creators);
+  // Function to handle creator deletion
+  const handleDelete = async (row) => {
+    if (
+      window.confirm(`Are you sure you want to delete "${row.creator_name}"?`)
+    ) {
+      const result = await deleteCreator(row._id);
+      // If deletion is successful, refresh the table data
+      if (result.success) {
+        if (onRefresh) onRefresh();
+      } else {
+        alert(result.message || "Failed to delete creator.");
       }
-    } catch (error) {
-      console.error("Error fetching creators:", error);
     }
   };
 
-  useEffect(() => {
-    if (userID) fetchCreators();
-  }, [userID, refreshKey]); // re-fetches when a new creator is added
+  // Actions need navigate and handlers, so we build them inside the component
+  const actions = [
+    {
+      icon: Eye,
+      title: "View",
+      onClick: (row) =>
+        navigate(`/view-creator-profile/${row._id}`, { state: row }),
+    },
+    {
+      icon: Trash2,
+      title: "Delete",
+      onClick: handleDelete,
+      className: "text-red-400 hover:text-red-600",
+      disabled: isDeleting,
+    },
+  ];
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-      <UniversalTable columns={COLUMNS} data={creators} actions={ACTIONS} />
+      <UniversalTable columns={COLUMNS} data={creators} actions={actions} />
     </div>
   );
 };
